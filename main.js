@@ -486,7 +486,7 @@ CANVAS.addEventListener("touchstart",(e) => {
 
 let username = localStorage.getItem("online_username");
 if (username == null){
-    let username = prompt("Please choose your multiplayer username:")
+    username = prompt("Please choose your multiplayer username:")
     if (username == undefined || username == null || username == "") {
         username = `player${floor(Math.random()*10)}${floor(Math.random()*10)}${floor(Math.random()*10)}${floor(Math.random()*10)}`;
         alert("You have been assigned a randomly generated name.")
