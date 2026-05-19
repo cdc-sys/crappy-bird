@@ -40,7 +40,7 @@ function pollAssets() {
     CONTEXT.fillStyle = "#CCCCCC";
     CONTEXT.fillRect(0,0,CANVAS.width,CANVAS.height);
     CONTEXT.fillStyle = "#000000";
-    CONTEXT.fillText(`Loading assets... (${loaded}/${assets.length})`,0,0);
+    CONTEXT.fillText(`Loading assets... (${loaded}/${assets.length})`,0,50);
     if (allLoaded) {
         clearInterval(POLL_INTERVAL);
         ASSETS_LOADED = true;
