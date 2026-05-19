@@ -492,7 +492,7 @@ multiplayer_ws.onopen = () => {
     multiplayer_ws.send(JSON.stringify({ "type": "joined", "data": {} }));
 }
 multiplayer_ws.onclose = () => {
-    alert("ws died");
+    CHAT_HISTORY.push("Info: The WS has been closed.");
     OFFLINE = true
 }
 multiplayer_ws.onmessage = (data) => {
@@ -540,7 +540,11 @@ function make_pipe(y) {
 function chat_send() {
     var msg = document.getElementById("chatbox").value;
     if (msg.trim() == "") return;
-    multiplayer_ws.send(JSON.stringify({ "type": "chat_message", "data": msg.trim() }));
+    try {
+        multiplayer_ws.send(JSON.stringify({ "type": "chat_message", "data": msg.trim() }));
+    } catch (e) {
+        CHAT_HISTORY.push("Send error: WS likely isn't open.");
+    }
     CHAT_HISTORY.push(`${username}: ${msg.trim()}`);
     document.getElementById("chatbox").value = "";
 }
