@@ -42,6 +42,7 @@ function pollAssets() {
     CONTEXT.fillStyle = "#000000";
     CONTEXT.fillText(`Loading assets... (${loaded}/${assets.length})`,0,50);
     if (allLoaded) {
+        init_game();
         clearInterval(POLL_INTERVAL);
         ASSETS_LOADED = true;
     }
