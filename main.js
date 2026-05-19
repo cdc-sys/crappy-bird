@@ -16,13 +16,28 @@ async function loadAssets() {
     var invisible_div = document.createElement("div");
     invisible_div.hidden = true;
     document.body.appendChild(invisible_div);
-    for (asset of assets) {
+    for (var asset of assets) {
         var img = document.createElement("img");
-        img.src = `${origin}/${asset}`;
+        img.src = `./${asset}`;
         invisible_div.appendChild(img);
         imageData[asset] = img;
     }
-    ASSETS_LOADED = true;
+    POLL_INTERVAL = setInterval(pollAssets,250);
+}
+
+POLL_INTERVAL = null
+
+function pollAssets() {
+    var allLoaded = true;
+    for (var img of imageData) {
+        if (!img.complete) {
+            allLoaded = false;
+        }
+    }
+    if (allLoaded) {
+        clearInterval(POLL_INTERVAL);
+        ASSETS_LOADED = true;
+    }
 }
 
 loadAssets();
