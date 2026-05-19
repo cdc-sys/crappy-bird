@@ -1,0 +1,160 @@
+:root {
+    --main-green-darkest: #865339;
+    --main-green-darker: #E6B585;
+    --main-green: #EFE4B0;
+    --main-green-lightest: #865339;
+}
+
+canvas {
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    border-radius:5px;
+}
+
+.chatbox {
+    width: 515px;
+    height: 50px;
+    max-width: 515px;
+    max-height: 50px;
+    backdrop-filter: blur(5px);
+    display: flex;
+    margin-top: -50px;
+}
+
+#chat {
+    padding-left: 15px;
+    padding-top: 15px;
+    margin-top: 0px;
+    padding-bottom: 50px;
+    width: 500px;
+    min-height: 500px;
+    max-height: 500px;
+    max-width: 500px;
+    overflow: scroll;
+    overflow-x: hidden;
+    scrollbar-color: var(--main-green-lightest) var(--main-green);
+    word-wrap: normal;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+}
+
+.chatbox input {
+    outline: none;
+    width: 465px;
+    height: 50px;
+    border: none;
+    padding: 15px;
+    background-color: hsl(from var(--main-green) calc(h - 5) s calc(l - 5));
+    border-top: var(--main-green-darkest) solid 3px;
+    color: var(--main-green-lightest);
+}
+
+.chatbox button {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-top: var(--main-green-darkest) solid 3px;
+    border-left: var(--main-green-darkest) solid 3px;
+    background-color: var(--main-green);
+    color: var(--main-green-lightest);
+    cursor: pointer;
+}
+
+.chat-container {
+    pointer-events: all;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    border: var(--main-green-darkest) solid 3px;
+    border-bottom: none;
+    background-color: var(--main-green);
+    color: var(--main-green-lightest);
+    display: inline-block;
+    position: absolute;
+    right: 25px;
+    bottom: 0px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 15px;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.chat-hidden {
+    transform: translateY(90%);
+    transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.chat-container h2 {
+    margin-top: 0px;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.button-right {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    float:right;
+    height: 40px;
+    width: 80px;
+    font-size: 14px;
+    font-weight: bold;
+    border: var(--main-green-darkest) solid 3px;
+    background-color: var(--main-green);
+    color: var(--main-green-lightest);
+    cursor: pointer;
+}
+
+.chat-content {
+    background-color: var(--main-green);
+    border-radius: 10px;
+    overflow: hidden;
+    border: var(--main-green-darkest) solid 3px;
+}
+
+.chat-mask {
+    pointer-events: none;
+    touch-action: none;
+    position:absolute;
+    overflow:hidden;
+    width:100%;
+    height:100%;
+}
+
+html {
+    overflow:hidden;
+}
+
+h1 {
+    color: #FFFFFF;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    position:absolute;
+    transform: translateX(-50%);
+    left: 50%;
+    top: 0;
+}
+
+@media (orientation: portrait) {
+    h1 {
+        font-size: 4rem;
+    }
+    html {
+        touch-action: manipulation;
+    }
+    canvas {
+        position: absolute !important;
+        width:100% !important;
+        height: auto !important;
+    }
+    .chat-container {
+        right: 25% !important;
+    }
+}
+html {
+    background-image:linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("/sitebg.png");
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+}
+
+body {
+    margin:0px;
+    backdrop-filter: blur(5px);
+}

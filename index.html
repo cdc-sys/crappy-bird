@@ -1,0 +1,23 @@
+<head>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<div>
+    <center>
+        <h1>Crappy Bird</h1>
+    </center>
+    <canvas id="game" width="400px" height="500px"></canvas>
+    <div class="chat-mask">
+    <div id="chat-container" class="chat-container chat-hidden">
+        <h2>Chat</h2>
+        <button onclick="chat_hide(this);" class="button-right">Show</button>
+        <div class="chat-content">
+            <pre id="chat"></pre>
+            <div class="chatbox">
+                <input id="chatbox"></input>
+                <button id="send" onclick="chat_send();">Send</button>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+<script src="./main.js"></script>
