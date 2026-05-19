@@ -484,7 +484,15 @@ CANVAS.addEventListener("touchstart",(e) => {
 
 // multiplayer
 
-let username = prompt("multiplayer username:")
+let username = localStorage.getItem("online_username");
+if (username == null){
+    let username = prompt("Please choose your multiplayer username:")
+    if (username == undefined || username == null || username == "") {
+        username = `player${floor(Math.random()*10)}${floor(Math.random()*10)}${floor(Math.random()*10)}${floor(Math.random()*10)}`;
+        alert("You have been assigned a randomly generated name.")
+    }
+    localStorage.setItem("online_username",username);
+}
 let multiplayer_ws = new WebSocket(SERVER_IP);
 
 multiplayer_ws.onopen = () => {
