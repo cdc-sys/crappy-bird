@@ -29,11 +29,16 @@ POLL_INTERVAL = null
 
 function pollAssets() {
     var allLoaded = true;
-    for (var img of imageData) {
-        if (!img.complete) {
+    var loaded = 0;
+    for (var img in imageData) {
+        if (!imageData[img].complete) {
             allLoaded = false;
+        } else {
+            loaded++;
         }
     }
+    CONTEXT.fillRect(0,0,CANVAS.width,CANVAS.height);
+    CONTEXT.fillText(`Loading assets... (${loaded}/${assets.length})`,0,0);
     if (allLoaded) {
         clearInterval(POLL_INTERVAL);
         ASSETS_LOADED = true;
