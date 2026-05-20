@@ -1,4 +1,7 @@
 let SERVER_IP = "wss://kptqkckp-5500.inc1.devtunnels.ms/";
+options_r = fetch(SERVER_IP.replace("wss","https").replace("ws","http"), {
+    "method":"OPTIONS"
+});
 let DISPLAY_FPS = 60; // assume 60 by default
 
 let ASSETS_LOADED = false;
