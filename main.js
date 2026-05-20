@@ -159,6 +159,7 @@ class Player extends Object {
     terminal_velocity = 7;
     terminal_bottomcap = -4;
     loss_animation_started = false;
+    multiplayer_color = Math.floor(Math.random()*360);
     constructor() {
         super();
         console.log("player created");
@@ -206,7 +207,7 @@ class Player extends Object {
             //console.log(this.fakexmultiplayer);
         }
         var bird_sprite1 = imageData["bird_base.png"];
-        if (this.multiplayer) bird_sprite1 = await hueshift(bird_sprite1,Math.floor(Math.random()*360));
+        if (this.multiplayer) bird_sprite1 = await hueshift(bird_sprite1,this.multiplayer_color);
         var draw_x = this.x + bird_sprite1.width / 2;
         var draw_y = this.y + bird_sprite1.height / 2;
         CONTEXT.translate(draw_x, draw_y);
