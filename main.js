@@ -94,7 +94,7 @@ class Player extends Object {
                 this.y_speed = this.terminal_bottomcap;
             }
             if (!this.loss_animation_started && GAME_STATE == GS_LOST) {
-                multiplayer_ws.send(JSON.stringify({ 'type': 'death', 'data': {} }))
+                if (!OFFLINE) multiplayer_ws.send(JSON.stringify({ 'type': 'death', 'data': {} }));
                 this.y_speed = -5;
                 this.loss_animation_started = true;
             }
@@ -186,7 +186,9 @@ class Pipe extends Object {
         if ((PLAYER.y + 21 < this.y - 75 || PLAYER.y + 21 > this.y) && PLAYER.x + 28 > this.x && PLAYER.x + 28 < this.x + 50) {
             GAME_STATE = GS_LOST;
         }
-        if (PLAYER.x + 28 > this.x + 40 && PLAYER.x + 28 < this.x + 45 && !this.increased_score) {
+        // PLAYER.x + 28 > this.x + 40 && 
+        // instead check AFTER the pipe is passed
+        if (PLAYER.x + 28 > this.x + 45 && !this.increased_score) {
             SCORE += 1;
             if (SCORE > HIGH_SCORE) HIGH_SCORE = SCORE;
             PIPE_DISTANCE -= 0.25;
@@ -444,9 +446,11 @@ function updateLoop() {
     var toremove = [];
 
     // todo: actually sort lol
-    var clouds_sorted = CLOUDS;
+    var clouds_sorted = CLOUDS.sort((a,b)=>{
+        if (a.speed < b.speed) return -1;
+    });
 
-    for (cloud of CLOUDS) {
+    for (cloud of clouds_sorted) {
         cloud.update(_dtmul);
         cloud.render();
     }
