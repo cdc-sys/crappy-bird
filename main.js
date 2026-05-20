@@ -1,6 +1,6 @@
 let SERVER_IP = "wss://kptqkckp-5500.inc1.devtunnels.ms/";
-options_r = fetch(SERVER_IP.replace("wss","https").replace("ws","http"), {
-    "method":"OPTIONS"
+options_r = fetch(SERVER_IP.replace("wss", "https").replace("ws", "http"), {
+    "method": "OPTIONS"
 });
 let DISPLAY_FPS = 60; // assume 60 by default
 
@@ -14,7 +14,90 @@ let CANVAS = document.querySelector("canvas");
 let CONTEXT = CANVAS.getContext('2d');
 
 let imageData = {};
-assets = ["medal-bronze.png", "medal-gold.png", "medal-silver.png", "ui_gameover.png", "pipe_base.png", "pipe_tip.png", "bg_cloud1.png", "bg_cloud2.png", "bg_cloud3.png", "bg_ground.png", "bg_groundhouse.png", "bird.png", "num/0.png", "num/1.png", "num/2.png", "num/3.png", "num/4.png", "num/5.png", "num/6.png", "num/6.png", "num/7.png", "num/8.png", "num/9.png", "ui_ns_box1.png", "ui_ns_box2.png", "ui_ns_box3.png", "ui_ns_box4.png", "ui_ns_box5.png", "ui_ns_box6.png", "ui_ns_box7.png", "ui_ns_box8.png", "ui_ns_box9.png"]
+assets = ["medal-bronze.png", "medal-gold.png", "medal-silver.png", "ui_gameover.png", "pipe_base.png", "pipe_tip.png", "bg_cloud1.png", "bg_cloud2.png", "bg_cloud3.png", "bg_ground.png", "bg_groundhouse.png", "bird.png", "bird_base.png", "bird_beak.png", "num/0.png", "num/1.png", "num/2.png", "num/3.png", "num/4.png", "num/5.png", "num/6.png", "num/6.png", "num/7.png", "num/8.png", "num/9.png", "ui_ns_box1.png", "ui_ns_box2.png", "ui_ns_box3.png", "ui_ns_box4.png", "ui_ns_box5.png", "ui_ns_box6.png", "ui_ns_box7.png", "ui_ns_box8.png", "ui_ns_box9.png"]
+
+function rgbToHsl(r, g, b) {
+    r /= 255, g /= 255, b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+
+    if (max == min) {
+        h = s = 0; // achromatic
+    } else {
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return ({
+        h: h,
+        s: s,
+        l: l,
+    });
+}
+
+function hslToRgb(h, s, l) {
+    var r, g, b;
+
+    if (s == 0) {
+        r = g = b = l; // achromatic
+    } else {
+        function hue2rgb(p, q, t) {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        }
+
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+    }
+
+    return ({
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255),
+    });
+}
+
+async function hueshift(img, deg) {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    context.drawImage(img, 0, 0 );
+    var myData = context.getImageData(0, 0, img.width, img.height);
+    var data = myData.data;
+
+    for (var i = 0; i < data.length; i += 4) {
+        red = data[i + 0];
+        green = data[i + 1];
+        blue = data[i + 2];
+        alpha = data[i + 3];
+        var hsl = rgbToHsl(red, green, blue);
+        var newRgb = hslToRgb(hsl.h+(deg/360 % 1), hsl.s, hsl.l);
+        data[i + 0] = newRgb.r;
+        data[i + 1] = newRgb.g;
+        data[i + 2] = newRgb.b;
+        data[i + 3] = alpha;
+    }
+    context.clearRect(0,0,canvas.width,canvas.height);
+    context.putImageData(myData,0,0);
+    var newImage = document.createElement("img");
+    newImage.src = canvas.toDataURL();
+    return newImage;
+}
+
 
 async function loadAssets() {
     var invisible_div = document.createElement("div");
@@ -26,7 +109,7 @@ async function loadAssets() {
         invisible_div.appendChild(img);
         imageData[asset] = img;
     }
-    POLL_INTERVAL = setInterval(pollAssets,250);
+    POLL_INTERVAL = setInterval(pollAssets, 250);
 }
 
 POLL_INTERVAL = null
@@ -42,9 +125,9 @@ function pollAssets() {
         }
     }
     CONTEXT.fillStyle = "#CCCCCC";
-    CONTEXT.fillRect(0,0,CANVAS.width,CANVAS.height);
+    CONTEXT.fillRect(0, 0, CANVAS.width, CANVAS.height);
     CONTEXT.fillStyle = "#000000";
-    CONTEXT.fillText(`Loading assets... (${loaded}/${assets.length})`,0,50);
+    CONTEXT.fillText(`Loading assets... (${loaded}/${assets.length})`, 0, 50);
     if (allLoaded) {
         init_game();
         clearInterval(POLL_INTERVAL);
@@ -88,7 +171,7 @@ class Player extends Object {
         }
         if (GAME_STATE != GS_PAUSED || this.multiplayer) {
             if (!this.holding) {
-                this.y_speed += this.grav*delta;
+                this.y_speed += this.grav * delta;
             }
             if (this.y_speed > this.terminal_velocity && GAME_STATE != GS_LOST) {
                 this.y_speed = this.terminal_velocity;
@@ -110,10 +193,10 @@ class Player extends Object {
             if (this.holding) {
                 this.y_speed -= 1;
             }
-            this.y += this.y_speed*delta;
+            this.y += this.y_speed * delta;
         }
     }
-    render() {
+    async render() {
         if (this.multiplayer) {
             this.x = this.fakexmultiplayer - PLAYER.fakexmultiplayer + 100;
             CONTEXT.fillStyle = "#000000";
@@ -122,12 +205,21 @@ class Player extends Object {
             CONTEXT.fillText(this.score, this.x, this.y - 15);
             //console.log(this.fakexmultiplayer);
         }
-        var bird_sprite = imageData["bird.png"];
-        var draw_x = this.x + bird_sprite.width / 2;
-        var draw_y = this.y + bird_sprite.height / 2;
+        var bird_sprite1 = imageData["bird_base.png"];
+        if (this.multiplayer) bird_sprite1 = await hueshift(bird_sprite1,Math.floor(Math.random()*360));
+        var draw_x = this.x + bird_sprite1.width / 2;
+        var draw_y = this.y + bird_sprite1.height / 2;
         CONTEXT.translate(draw_x, draw_y);
         CONTEXT.rotate(this.y_speed * 5 * Math.PI / 180)
-        CONTEXT.drawImage(bird_sprite, -bird_sprite.width / 2, -bird_sprite.height / 2);
+        CONTEXT.drawImage(bird_sprite1, -bird_sprite1.width / 2, -bird_sprite1.height / 2);
+        CONTEXT.rotate(-(this.y_speed * 5 * Math.PI / 180))
+        CONTEXT.translate(-draw_x, -draw_y);
+        var bird_sprite2 = imageData["bird_beak.png"];
+        var draw_x = this.x + bird_sprite2.width / 2;
+        var draw_y = this.y + bird_sprite2.height / 2;
+        CONTEXT.translate(draw_x, draw_y);
+        CONTEXT.rotate(this.y_speed * 5 * Math.PI / 180)
+        CONTEXT.drawImage(bird_sprite2, -bird_sprite2.width / 2, -bird_sprite2.height / 2);
         CONTEXT.rotate(-(this.y_speed * 5 * Math.PI / 180))
         CONTEXT.translate(-draw_x, -draw_y);
     }
@@ -174,7 +266,7 @@ class Pipe extends Object {
         var base = imageData["pipe_base.png"];
         var tip = imageData["pipe_tip.png"];
         //bottom half
-        CONTEXT.drawImage(base, this.x, this.y+2, base.width, 999);
+        CONTEXT.drawImage(base, this.x, this.y + 2, base.width, 999);
         CONTEXT.drawImage(tip, this.x, this.y);
         //top half
         CONTEXT.drawImage(base, this.x, this.y - 1090, base.width, 999);
@@ -182,10 +274,10 @@ class Pipe extends Object {
     }
     update(delta) {
         if (GAME_STATE == GS_LOST || GAME_STATE == GS_PAUSED) return;
-        var dist = Math.min(125,Math.abs(this.x - PLAYER.x))/125;
+        var dist = Math.min(125, Math.abs(this.x - PLAYER.x)) / 125;
         if (SCORE >= 50) {
-            this.siner += 1*delta;
-            this.y = this.basey + (Math.sin(this.siner * this.rand) * this.movedist)*dist;
+            this.siner += 1 * delta;
+            this.y = this.basey + (Math.sin(this.siner * this.rand) * this.movedist) * dist;
         }
         if ((PLAYER.y + 21 < this.y - 75 || PLAYER.y + 21 > this.y) && PLAYER.x + 28 > this.x && PLAYER.x + 28 < this.x + 50) {
             GAME_STATE = GS_LOST;
@@ -197,7 +289,7 @@ class Pipe extends Object {
             PIPE_DISTANCE -= 0.25;
             this.increased_score = true;
         }
-        this.x -= this.speed*delta;
+        this.x -= this.speed * delta;
     }
 }
 
@@ -225,7 +317,7 @@ class Cloud extends Object {
             this.speed = 1 + Math.random();
             this.randomize_texture();
         }
-        this.x -= this.speed*delta;
+        this.x -= this.speed * delta;
     }
 }
 
@@ -245,7 +337,7 @@ class Ground extends Object {
     render() {
         var txtr = imageData[this.texture]
         if (txtr.height == 0 || txtr.width == 0) return;
-        for (var i = 0; i < (CANVAS.width/txtr.width)+1; i++) {
+        for (var i = 0; i < (CANVAS.width / txtr.width) + 1; i++) {
             CONTEXT.drawImage(txtr, this.x + this.width * i, this.y);
         }
     }
@@ -254,7 +346,7 @@ class Ground extends Object {
         if (this.x < -this.width) {
             this.x = 0;
         }
-        this.x -= this.speed*delta;
+        this.x -= this.speed * delta;
     }
 }
 
@@ -274,7 +366,7 @@ class City extends Object {
     render() {
         var txtr = imageData[this.texture]
         if (txtr.height == 0 || txtr.width == 0) return;
-        for (var i = 0; i < (CANVAS.width/txtr.width)+1; i++) {
+        for (var i = 0; i < (CANVAS.width / txtr.width) + 1; i++) {
             CONTEXT.drawImage(txtr, this.x + this.width * i, this.y);
         }
     }
@@ -283,7 +375,7 @@ class City extends Object {
         if (this.x < -this.width) {
             this.x = 0;
         }
-        this.x -= this.speed*delta;
+        this.x -= this.speed * delta;
     }
 }
 
@@ -329,7 +421,7 @@ class ScorePopup extends Object {
         if (GAME_STATE == GS_PAUSED) {
             if (SCORE > HIGH_SCORE) {
                 HIGH_SCORE = SCORE;
-                localStorage.setItem("crappy_bird_high_score",HIGH_SCORE);
+                localStorage.setItem("crappy_bird_high_score", HIGH_SCORE);
                 this.newScore = true;
             }
             this.y = this.y + (this.ty - this.y) * 0.1;
@@ -440,12 +532,12 @@ let CHAT_HISTORY = [];
 function updateLoop() {
     setTimeout(updateLoop, (1 / DISPLAY_FPS) * 1000);
     if (!ASSETS_LOADED) return;
-    var _dt = 1/DISPLAY_FPS;
-    var _dtmul = _dt/(1/60);
+    var _dt = 1 / DISPLAY_FPS;
+    var _dtmul = _dt / (1 / 60);
 
     CONTEXT.clearRect(0, 0, CANVAS.width, CANVAS.height); // clear the screen
 
-    pipetimer += 1*_dtmul;
+    pipetimer += 1 * _dtmul;
     if (pipetimer > PIPE_DISTANCE) {
         pipetimer = 0;
         if (OFFLINE) OBJECTS.push(new Pipe());
@@ -458,7 +550,7 @@ function updateLoop() {
     var toremove = [];
 
     // todo: actually sort lol
-    var clouds_sorted = CLOUDS.sort((a,b)=>{
+    var clouds_sorted = CLOUDS.sort((a, b) => {
         if (a.speed < b.speed) return -1;
     });
 
@@ -508,7 +600,7 @@ function multiplayerPacket() {
     try {
         multiplayer_ws.send(JSON.stringify({ 'type': 'pos_update', 'data': PLAYER.get_web() }))
     } catch (e) {
-        console.log("Unable to send multiplayer packet:",e);
+        console.log("Unable to send multiplayer packet:", e);
     }
 }
 
@@ -522,11 +614,11 @@ window.onkeydown = (e) => {
     if (e.code == "Enter") chat_send()
 }
 window.onkeyup = (e) => { if (e.code == "ArrowUp") PLAYER.unjump() }
-CANVAS.addEventListener("mousedown",(e) => {
+CANVAS.addEventListener("mousedown", (e) => {
     if (GAME_STATE == GS_PLAYING) PLAYER.jump();
     if (GAME_STATE == GS_PAUSED) init_game();
 });
-CANVAS.addEventListener("touchstart",(e) => {
+CANVAS.addEventListener("touchstart", (e) => {
     if (GAME_STATE == GS_PLAYING) PLAYER.jump();
     if (GAME_STATE == GS_PAUSED) init_game();
 });
@@ -535,18 +627,18 @@ CANVAS.addEventListener("touchstart",(e) => {
 
 // shorthand
 
-function floor(x){
+function floor(x) {
     return Math.floor(x);
 }
 
 let username = localStorage.getItem("online_username");
-if (username == null){
+if (username == null) {
     username = prompt("Please choose your multiplayer username:")
     if (username == undefined || username == null || username == "") {
-        username = `player${floor(Math.random()*10)}${floor(Math.random()*10)}${floor(Math.random()*10)}${floor(Math.random()*10)}`;
+        username = `player${floor(Math.random() * 10)}${floor(Math.random() * 10)}${floor(Math.random() * 10)}${floor(Math.random() * 10)}`;
         alert("You have been assigned a randomly generated name.")
     }
-    localStorage.setItem("online_username",username);
+    localStorage.setItem("online_username", username);
 }
 let multiplayer_ws = new WebSocket(SERVER_IP);
 
@@ -626,7 +718,7 @@ function chat_hide(button) {
 }
 
 // copied shit
-function getScreenRefreshRate(callback, runIndefinitely){
+function getScreenRefreshRate(callback, runIndefinitely) {
     let requestId = null;
     let callbackTriggered = false;
     runIndefinitely = runIndefinitely || false;
@@ -634,42 +726,42 @@ function getScreenRefreshRate(callback, runIndefinitely){
     if (!window.requestAnimationFrame) {
         window.requestAnimationFrame = window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
     }
-    
+
     let DOMHighResTimeStampCollection = [];
 
-    let triggerAnimation = function(DOMHighResTimeStamp){
+    let triggerAnimation = function (DOMHighResTimeStamp) {
         DOMHighResTimeStampCollection.unshift(DOMHighResTimeStamp);
-        
+
         if (DOMHighResTimeStampCollection.length > 10) {
             let t0 = DOMHighResTimeStampCollection.pop();
             let fps = Math.floor(1000 * 10 / (DOMHighResTimeStamp - t0));
 
-            if(!callbackTriggered){
+            if (!callbackTriggered) {
                 callback.call(undefined, fps, DOMHighResTimeStampCollection);
             }
 
-            if(runIndefinitely){
+            if (runIndefinitely) {
                 callbackTriggered = false;
-            }else{
+            } else {
                 callbackTriggered = true;
             }
         }
-    
+
         requestId = window.requestAnimationFrame(triggerAnimation);
     };
-    
+
     window.requestAnimationFrame(triggerAnimation);
 
     // Stop after half second if it shouldn't run indefinitely
-    if(!runIndefinitely){
-        window.setTimeout(function(){
+    if (!runIndefinitely) {
+        window.setTimeout(function () {
             window.cancelAnimationFrame(requestId);
             requestId = null;
         }, 500);
     }
 }
 
-getScreenRefreshRate((fps)=>{
+getScreenRefreshRate((fps) => {
     DISPLAY_FPS = fps;
-},true);
+}, true);
 //DISPLAY_FPS = 30;
