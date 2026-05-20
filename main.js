@@ -179,9 +179,10 @@ class Pipe extends Object {
     }
     update(delta) {
         if (GAME_STATE == GS_LOST || GAME_STATE == GS_PAUSED) return;
+        var dist = Math.min(125,Math.abs(this.x - PLAYER.x))/125;
         if (SCORE >= 50) {
-            this.siner += 1;
-            this.y = this.basey + (Math.sin(this.siner * this.rand) * this.movedist)*delta;
+            this.siner += 1*delta;
+            this.y = this.basey + (Math.sin(this.siner * this.rand) * this.movedist)*dist;
         }
         if ((PLAYER.y + 21 < this.y - 75 || PLAYER.y + 21 > this.y) && PLAYER.x + 28 > this.x && PLAYER.x + 28 < this.x + 50) {
             GAME_STATE = GS_LOST;
@@ -190,7 +191,6 @@ class Pipe extends Object {
         // instead check AFTER the pipe is passed
         if (PLAYER.x + 28 > this.x + 45 && !this.increased_score) {
             SCORE += 1;
-            if (SCORE > HIGH_SCORE) HIGH_SCORE = SCORE;
             PIPE_DISTANCE -= 0.25;
             this.increased_score = true;
         }
@@ -316,6 +316,7 @@ class ScorePopup extends Object {
     height = 200;
     tx = CANVAS.width / 2 - this.width / 2;
     ty = CANVAS.height / 2 - this.height / 2 + 75;
+    newScore = false;
     constructor() {
         super();
         this.x = this.tx;
@@ -323,10 +324,18 @@ class ScorePopup extends Object {
     }
     update() {
         if (GAME_STATE == GS_PAUSED) {
+            if (SCORE > HIGH_SCORE) {
+                HIGH_SCORE = SCORE;
+                localStorage.setItem("crappy_bird_high_score",HIGH_SCORE);
+                this.newScore = true;
+            }
             this.y = this.y + (this.ty - this.y) * 0.1;
             if (INSTA_RESET) init_game();
         }
-        else this.y = this.y + (900 - this.y) * 0.1;
+        else {
+            this.y = this.y + (900 - this.y) * 0.1;
+            this.newScore = false;
+        }
     }
     render() {
         var side_w = this.width - 28 * 2;
@@ -360,7 +369,7 @@ class ScorePopup extends Object {
         CONTEXT.textAlign = 'end'
         CONTEXT.fillText("SCORE", this.x + 325, this.y + 40);
         CONTEXT.fillText(SCORE, this.x + 325, this.y + 70);
-        CONTEXT.fillText((SCORE == HIGH_SCORE ? "NEW " : "") + "BEST", this.x + 325, this.y + 100);
+        CONTEXT.fillText((this.newScore ? "NEW " : "") + "BEST", this.x + 325, this.y + 100);
         CONTEXT.fillText(HIGH_SCORE, this.x + 325, this.y + 130);
 
         CONTEXT.textAlign = 'center'
@@ -389,7 +398,7 @@ let SCORE = 0;
 let pipetimer = 0;
 let OBJECTS = [];
 let CLOUDS = [];
-let HIGH_SCORE = 0;
+let HIGH_SCORE = localStorage.getItem("crappy_bird_high_score") || 0;
 OBJECTS.push(new City());
 OBJECTS.push(new Ground());
 // spawn clouds
@@ -493,7 +502,11 @@ updateLoop();
 
 function multiplayerPacket() {
     if (OFFLINE) return;
-    multiplayer_ws.send(JSON.stringify({ 'type': 'pos_update', 'data': PLAYER.get_web() }))
+    try {
+        multiplayer_ws.send(JSON.stringify({ 'type': 'pos_update', 'data': PLAYER.get_web() }))
+    } catch (e) {
+        console.log("Unable to send multiplayer packet:",e);
+    }
 }
 
 setInterval(multiplayerPacket, 1 / 60 * 1000);
