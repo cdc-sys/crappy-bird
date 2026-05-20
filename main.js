@@ -78,7 +78,6 @@ async function hueshift(img, deg) {
     context.drawImage(img, 0, 0 );
     var myData = context.getImageData(0, 0, img.width, img.height);
     var data = myData.data;
-
     for (var i = 0; i < data.length; i += 4) {
         red = data[i + 0];
         green = data[i + 1];
@@ -160,6 +159,7 @@ class Player extends Object {
     terminal_bottomcap = -4;
     loss_animation_started = false;
     multiplayer_color = Math.floor(Math.random()*360);
+    shifted_sprite = null;
     constructor() {
         super();
         console.log("player created");
@@ -207,7 +207,12 @@ class Player extends Object {
             //console.log(this.fakexmultiplayer);
         }
         var bird_sprite1 = imageData["bird_base.png"];
-        if (this.multiplayer) bird_sprite1 = await hueshift(bird_sprite1,this.multiplayer_color);
+        if (this.multiplayer) {
+            if (this.shifted_sprite == null) {
+                this.shifted_sprite = await hueshift(bird_sprite1,this.multiplayer_color);
+            }
+            bird_sprite1 = this.shifted_sprite;
+        }
         var draw_x = this.x + bird_sprite1.width / 2;
         var draw_y = this.y + bird_sprite1.height / 2;
         CONTEXT.translate(draw_x, draw_y);
