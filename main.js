@@ -423,18 +423,18 @@ class ScorePopup extends Object {
         this.x = this.tx;
         this.y = 900;
     }
-    update() {
+    update(dt) {
         if (GAME_STATE == GS_PAUSED) {
             if (SCORE > HIGH_SCORE) {
                 HIGH_SCORE = SCORE;
                 localStorage.setItem("crappy_bird_high_score", HIGH_SCORE);
                 this.newScore = true;
             }
-            this.y = this.y + (this.ty - this.y) * 0.1;
+            this.y = this.y + (this.ty - this.y) * (0.1 * dt);
             if (INSTA_RESET) init_game();
         }
         else {
-            this.y = this.y + (900 - this.y) * 0.1;
+            this.y = this.y + (900 - this.y) * (0.1 * dt);
             this.newScore = false;
         }
     }
@@ -535,10 +535,22 @@ init_game();
 let MP_PLAYERS = {};
 let CHAT_HISTORY = [];
 
-function updateLoop() {
-    setTimeout(updateLoop, (1 / DISPLAY_FPS) * 1000);
+let loop_lastTime = 0;
+let loop_delta = 1/60;
+let loop_fps = 60;
+
+let fps_limit = -1;
+
+function updateLoop(dt) {
+    requestAnimationFrame(updateLoop);
     if (!ASSETS_LOADED) return;
-    var _dt = 1 / DISPLAY_FPS;
+
+    loop_delta = (dt-loop_lastTime)/1000;
+    loop_fps = 1/loop_delta;
+    if (fps_limit > 0 && loop_delta < 1/fps_limit) return;
+    loop_lastTime = dt;
+
+    var _dt = loop_delta;
     var _dtmul = _dt / (1 / 60);
 
     CONTEXT.clearRect(0, 0, CANVAS.width, CANVAS.height); // clear the screen
@@ -580,6 +592,12 @@ function updateLoop() {
         OBJECTS.splice(OBJECTS.indexOf(obsolete), 1);
     }
 
+    for (player in MP_PLAYERS) {
+        if (OFFLINE) break;
+        MP_PLAYERS[player].update(_dtmul);
+        MP_PLAYERS[player].render();
+    }
+
     PLAYER.update(_dtmul);
     PLAYER.render();
 
@@ -589,14 +607,11 @@ function updateLoop() {
     SCORE_POPUP.update(_dtmul);
     SCORE_POPUP.render();
 
-    for (player in MP_PLAYERS) {
-        if (OFFLINE) break;
-        MP_PLAYERS[player].update(_dtmul);
-        MP_PLAYERS[player].render();
-    }
-
     //if (multiplayer_ws.readyState == CLOSED || GAME_STATE == GS_PAUSED) return;
     document.getElementById("chat").innerText = CHAT_HISTORY.join("\n");
+
+    CONTEXT.fillText(`FPS: ${Math.round(loop_fps)}`,0,20);
+    CONTEXT.fillText(`(${loop_delta.toPrecision(3)})`,0,40);
 }
 
 updateLoop();
