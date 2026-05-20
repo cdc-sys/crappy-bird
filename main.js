@@ -171,7 +171,7 @@ class Pipe extends Object {
         var base = imageData["pipe_base.png"];
         var tip = imageData["pipe_tip.png"];
         //bottom half
-        CONTEXT.drawImage(base, this.x, this.y, base.width, 999);
+        CONTEXT.drawImage(base, this.x, this.y+2, base.width, 999);
         CONTEXT.drawImage(tip, this.x, this.y);
         //top half
         CONTEXT.drawImage(base, this.x, this.y - 1090, base.width, 999);
