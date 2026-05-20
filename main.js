@@ -190,7 +190,7 @@ class Pipe extends Object {
             SCORE += 1;
             if (SCORE > HIGH_SCORE) HIGH_SCORE = SCORE;
             PIPE_DISTANCE -= 0.25;
-            increased_score = true;
+            this.increased_score = true;
         }
         this.x -= this.speed*delta;
     }
