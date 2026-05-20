@@ -185,16 +185,16 @@ class Player extends Object {
                 this.y_speed = -5;
                 this.loss_animation_started = true;
             }
-            if (this.y > 430) {
-                this.y = 430;
-                if (!this.multiplayer) {
-                    GAME_STATE = GS_PAUSED;
-                }
-            }
             if (this.holding) {
                 this.y_speed -= 1;
             }
             this.y += this.y_speed * delta;
+            if (this.y > 450) {
+                this.y = 450;
+                if (!this.multiplayer) {
+                    GAME_STATE = GS_PAUSED;
+                }
+            }
         }
     }
     async render() {
