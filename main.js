@@ -659,10 +659,10 @@ CANVAS.addEventListener("mousedown", (e) => {
     if (GAME_STATE == GS_PLAYING) PLAYER.jump();
     if (GAME_STATE == GS_PAUSED) init_game();
 });
-CANVAS.addEventListener("touchstart", (e) => {
+/*CANVAS.addEventListener("touchstart", (e) => {
     if (GAME_STATE == GS_PLAYING) PLAYER.jump();
     if (GAME_STATE == GS_PAUSED) init_game();
-});
+});*/
 
 // multiplayer
 
@@ -719,6 +719,7 @@ multiplayer_ws.onmessage = (data) => {
         GAME_STATE = GS_LOST;
         return;
     }
+    if (type != "pos_update") return;
     if (MP_PLAYERS[user] == undefined) {
         MP_PLAYERS[user] = new Player();
         MP_PLAYERS[user].multiplayer = true;
