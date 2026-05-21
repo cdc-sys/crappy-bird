@@ -656,13 +656,15 @@ window.onkeydown = (e) => {
 }
 window.onkeyup = (e) => { if (e.code == "ArrowUp") PLAYER.unjump() }
 CANVAS.addEventListener("mousedown", (e) => {
+    if (orientation != undefined) return;
     if (GAME_STATE == GS_PLAYING) PLAYER.jump();
     if (GAME_STATE == GS_PAUSED) init_game();
 });
-/*CANVAS.addEventListener("touchstart", (e) => {
+CANVAS.addEventListener("touchstart", (e) => {
+    if (orientation == undefined) return;
     if (GAME_STATE == GS_PLAYING) PLAYER.jump();
     if (GAME_STATE == GS_PAUSED) init_game();
-});*/
+});
 
 // multiplayer
 
