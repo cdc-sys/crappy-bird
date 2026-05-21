@@ -13,7 +13,7 @@ function makePipeLoop() {
 			continue;
 		}
 		if (client.pipetimer > client.pipe_distance) {
-			if (client.score > PIPE_YS.length - 1) PIPE_YS[client.score] = Math.round(100 + Math.random() * 200);
+			if (client.score >= PIPE_YS.length - 1) PIPE_YS[client.score] = Math.round(100 + Math.random() * 200);
 			client.send(JSON.stringify({ "username": "server", packet: { "type": "summon_pipe", "data": PIPE_YS[client.score] } }));
 			client.pipetimer = 0;
 		}
