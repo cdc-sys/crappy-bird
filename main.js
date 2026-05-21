@@ -6,8 +6,8 @@ let DISPLAY_FPS = 60; // assume 60 by default
 
 let ASSETS_LOADED = false;
 let OFFLINE = false;
-let DEATHLINK = true;
-let INSTA_RESET = true;
+let DEATHLINK = false;
+let INSTA_RESET = false;
 document.title = "Crappy Bird";
 
 let CANVAS = document.querySelector("canvas");
