@@ -617,7 +617,7 @@ function updateLoop(dt) {
 updateLoop();
 
 function multiplayerPacket() {
-    if (OFFLINE) return;
+    if (OFFLINE || GAME_STATE != GS_PLAYING) return;
     try {
         multiplayer_ws.send(JSON.stringify({ 'type': 'pos_update', 'data': PLAYER.get_web() }));
     } catch (e) {
