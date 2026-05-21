@@ -619,11 +619,22 @@ updateLoop();
 function multiplayerPacket() {
     if (OFFLINE) return;
     try {
-        multiplayer_ws.send(JSON.stringify({ 'type': 'pos_update', 'data': PLAYER.get_web() }))
+        multiplayer_ws.send(JSON.stringify({ 'type': 'pos_update', 'data': PLAYER.get_web() }));
     } catch (e) {
         console.log("Unable to send multiplayer packet:", e);
     }
 }
+
+function multiplayerPing(){
+    if (OFFLINE) return;
+    try {
+        multiplayer_ws.send(JSON.stringify({ 'type': 'ping', 'data': null }));
+    } catch (e) {
+        console.log("Unable to send multiplayer ping:", e);
+    }
+}
+
+setInterval(multiplayerPing, 10*1000);
 
 setInterval(multiplayerPacket, 1 / 60 * 1000);
 

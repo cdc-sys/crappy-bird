@@ -19,13 +19,19 @@ function makePipeLoop() {
 		}
 		client.pipe_distance = 70 - client.score * 0.25;
 		client.pipetimer++;
+		if (Date.now() - client.last_ping > PING_TIMEOUT) {
+			client.close();
+		}
 	}
 }
 setInterval(makePipeLoop, 1 / 60 * 1000);
 
+const PING_TIMEOUT = 60*1000;
+
 wss.on('connection', function connection(ws) {
 	if (ws.pipetimer == undefined) ws.pipetimer = 0;
 	if (ws.pipe_distance == undefined) ws.pipe_distance = 70;
+	ws.last_ping = Date.now();
 	ws.on('error', console.error);
 	ws.on('close', function () {
 		for (var client of CLIENTS) {
@@ -53,6 +59,9 @@ wss.on('connection', function connection(ws) {
 		if (packet.type == "pos_update") {
 			ws.score = packet.data[8];
 			ws.lost = packet.data[7];
+		}
+		if (packet.type == "ping") {
+			ws.last_ping = Date.now();
 		}
 		//ws.send("data received");
 		for (var client of CLIENTS) {
