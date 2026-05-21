@@ -181,7 +181,6 @@ class Player extends Object {
                 this.y_speed = this.terminal_bottomcap;
             }
             if (!this.loss_animation_started && GAME_STATE == GS_LOST) {
-                if (!OFFLINE) multiplayer_ws.send(JSON.stringify({ 'type': 'death', 'data': {} }));
                 this.y_speed = -5;
                 this.loss_animation_started = true;
             }
@@ -192,6 +191,11 @@ class Player extends Object {
             if (this.y > 450) {
                 this.y = 450;
                 if (!this.multiplayer) {
+                    try{
+                        if (!OFFLINE) multiplayer_ws.send(JSON.stringify({ 'type': 'death', 'data': {} }));
+                    } catch (e) {
+                        console.log("failed to send death packet");
+                    }
                     GAME_STATE = GS_PAUSED;
                 }
             }
@@ -511,6 +515,11 @@ let COUNTER = new Counter();
 let SCORE_POPUP = new ScorePopup();
 
 function init_game() {
+    try {
+        if (!OFFLINE) multiplayer_ws.send(JSON.stringify({ 'type': 'new_game', 'data': {} }));
+    } catch (e) {
+        console.log("failed to send new game packet");
+    }
     GS_PLAYING = 0;
     GS_LOST = 1;
     GS_PAUSED = 2;
