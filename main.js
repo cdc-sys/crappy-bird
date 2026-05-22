@@ -156,7 +156,7 @@ class Player extends Object {
     y_speed = 0;
     holding = false;
     terminal_velocity = 7;
-    terminal_bottomcap = -5.5;
+    terminal_bottomcap = -5;
     loss_animation_started = false;
     multiplayer_color = Math.floor(Math.random()*360);
     shifted_sprite = null;
