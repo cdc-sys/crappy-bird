@@ -156,7 +156,7 @@ class Player extends Object {
     y_speed = 0;
     holding = false;
     terminal_velocity = 7;
-    terminal_bottomcap = -4;
+    terminal_bottomcap = -5.5;
     loss_animation_started = false;
     multiplayer_color = Math.floor(Math.random()*360);
     shifted_sprite = null;
@@ -235,7 +235,7 @@ class Player extends Object {
     }
     jump() {
         if (GAME_STATE != GS_PLAYING) return;
-        this.y_speed = -5;
+        this.y_speed = -10;
     }
     unjump() {
         this.holding = false;
@@ -287,7 +287,7 @@ class Pipe extends Object {
         var dist = Math.min(125, Math.abs(this.x - PLAYER.x)) / 125;
         if (SCORE >= 50) {
             this.siner += 1 * delta;
-            this.y = this.basey + (Math.sin(this.siner * this.rand) * this.movedist) * dist;
+            this.y = this.basey + ((Math.sin(this.siner * this.rand) * this.movedist) * dist);
         }
         if ((PLAYER.y + 21 < this.y - 75 || PLAYER.y + 21 > this.y) && PLAYER.x + 28 > this.x && PLAYER.x + 28 < this.x + 50) {
             GAME_STATE = GS_LOST;
@@ -735,6 +735,7 @@ multiplayer_ws.onmessage = (data) => {
 function make_pipe(y) {
     var pipe = new Pipe();
     pipe.y = y;
+    pipe.basey = y;
     OBJECTS.push(pipe);
 }
 
