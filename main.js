@@ -2,7 +2,6 @@ let SERVER_IP = "wss://kptqkckp-5500.inc1.devtunnels.ms/";
 options_r = fetch(SERVER_IP.replace("wss", "https").replace("ws", "http"), {
     "method": "OPTIONS"
 });
-let DISPLAY_FPS = 60; // assume 60 by default
 
 let ASSETS_LOADED = false;
 let OFFLINE = false;
@@ -12,6 +11,25 @@ document.title = "Crappy Bird";
 
 let CANVAS = document.querySelector("canvas");
 let CONTEXT = CANVAS.getContext('2d');
+
+function adaptCanvasSizeToHiDPI(w,h){
+    var dpr = devicePixelRatio;
+
+    CANVAS.width = w;
+    CANVAS.height = h;
+
+    CANVAS.setAttribute("width",`${w*dpr}px`);
+    CANVAS.setAttribute("height",`${h*dpr}px`);
+
+    CANVAS.real_width = w;
+    CANVAS.real_height = h;
+
+    CANVAS.style = `width:${w};height:${h};`;
+
+    CONTEXT.scale(dpr,dpr);
+}
+
+adaptCanvasSizeToHiDPI(400,500);
 
 let imageData = {};
 assets = ["medal-bronze.png", "medal-gold.png", "medal-silver.png", "ui_gameover.png", "pipe_base.png", "pipe_tip.png", "bg_cloud1.png", "bg_cloud2.png", "bg_cloud3.png", "bg_ground.png", "bg_groundhouse.png", "bird.png", "bird_base.png", "bird_beak.png", "num/0.png", "num/1.png", "num/2.png", "num/3.png", "num/4.png", "num/5.png", "num/6.png", "num/6.png", "num/7.png", "num/8.png", "num/9.png", "ui_ns_box1.png", "ui_ns_box2.png", "ui_ns_box3.png", "ui_ns_box4.png", "ui_ns_box5.png", "ui_ns_box6.png", "ui_ns_box7.png", "ui_ns_box8.png", "ui_ns_box9.png"]
@@ -130,6 +148,7 @@ function pollAssets() {
     if (allLoaded) {
         init_game();
         clearInterval(POLL_INTERVAL);
+        requestAnimationFrame(updateLoop);
         ASSETS_LOADED = true;
     }
 }
@@ -211,12 +230,13 @@ class Player extends Object {
             //console.log(this.fakexmultiplayer);
         }
         var bird_sprite1 = imageData["bird_base.png"];
-        if (this.multiplayer) {
-            if (this.shifted_sprite == null) {
-                this.shifted_sprite = await hueshift(bird_sprite1,this.multiplayer_color);
-            }
-            bird_sprite1 = this.shifted_sprite;
+
+        // hue shift bird sprite
+        if (this.shifted_sprite == null) {
+            this.shifted_sprite = await hueshift(bird_sprite1,this.multiplayer_color);
         }
+        bird_sprite1 = this.shifted_sprite;
+
         var draw_x = this.x + bird_sprite1.width / 2;
         var draw_y = this.y + bird_sprite1.height / 2;
         CONTEXT.translate(draw_x, draw_y);
@@ -347,7 +367,7 @@ class Ground extends Object {
     render() {
         var txtr = imageData[this.texture]
         if (txtr.height == 0 || txtr.width == 0) return;
-        for (var i = 0; i < (CANVAS.width / txtr.width) + 1; i++) {
+        for (var i = 0; i < (CANVAS.real_width / txtr.width) + 1; i++) {
             CONTEXT.drawImage(txtr, this.x + this.width * i, this.y);
         }
     }
@@ -376,7 +396,7 @@ class City extends Object {
     render() {
         var txtr = imageData[this.texture]
         if (txtr.height == 0 || txtr.width == 0) return;
-        for (var i = 0; i < (CANVAS.width / txtr.width) + 1; i++) {
+        for (var i = 0; i < (CANVAS.real_width / txtr.width) + 1; i++) {
             CONTEXT.drawImage(txtr, this.x + this.width * i, this.y);
         }
     }
@@ -419,8 +439,8 @@ class Counter extends Object {
 class ScorePopup extends Object {
     width = 350;
     height = 200;
-    tx = CANVAS.width / 2 - this.width / 2;
-    ty = CANVAS.height / 2 - this.height / 2 + 75;
+    tx = CANVAS.real_width / 2 - this.width / 2;
+    ty = CANVAS.real_height / 2 - this.height / 2 + 75;
     newScore = false;
     constructor() {
         super();
@@ -544,23 +564,35 @@ init_game();
 let MP_PLAYERS = {};
 let CHAT_HISTORY = [];
 
-let loop_lastTime = 0;
+let loop_lastTime = Date.now();
+let loop_lastSecondBegin = Date.now();
 let loop_delta = 1/60;
 let loop_fps = 60;
+let loop_framesDrawn = 0;
 
 let fps_limit = -1;
 
-function updateLoop(dt) {
-    requestAnimationFrame(updateLoop);
+function roundTo(num, decimals) {
+  const factor = Math.pow(10, decimals);
+  return Math.floor((num + Number.EPSILON) * factor) / factor;
+}
+
+function updateLoop() {
     if (!ASSETS_LOADED) return;
 
-    loop_delta = (dt-loop_lastTime)/1000;
-    loop_fps = 1/loop_delta;
+    var now = Date.now(); 
+    loop_delta = (now-loop_lastTime)/1000;
+    if (now-loop_lastSecondBegin >= 1000) {
+        loop_lastSecondBegin = Date.now();
+        loop_fps = loop_framesDrawn;
+        loop_framesDrawn = 0;
+    }
+
     if (fps_limit > 0 && loop_delta < 1/fps_limit) return;
-    loop_lastTime = dt;
+    loop_lastTime = Date.now();
 
     var _dt = loop_delta;
-    var _dtmul = _dt / (1 / 60);
+    var _dtmul = _dt * 60;
 
     CONTEXT.clearRect(0, 0, CANVAS.width, CANVAS.height); // clear the screen
 
@@ -572,7 +604,6 @@ function updateLoop(dt) {
 
     CONTEXT.fillStyle = "#A8DAE0";
     CONTEXT.fillRect(0, 0, CANVAS.width, CANVAS.height);
-
 
     var toremove = [];
 
@@ -621,6 +652,9 @@ function updateLoop(dt) {
 
     CONTEXT.fillText(`FPS: ${Math.round(loop_fps)}`,0,20);
     CONTEXT.fillText(`(${loop_delta.toPrecision(3)})`,0,40);
+
+    loop_framesDrawn++;
+    requestAnimationFrame(updateLoop);
 }
 
 updateLoop();
@@ -655,13 +689,12 @@ window.onkeydown = (e) => {
     if (e.code == "Enter") chat_send()
 }
 window.onkeyup = (e) => { if (e.code == "ArrowUp") PLAYER.unjump() }
+
 CANVAS.addEventListener("mousedown", (e) => {
-    if (orientation != undefined) return;
     if (GAME_STATE == GS_PLAYING) PLAYER.jump();
     if (GAME_STATE == GS_PAUSED) init_game();
 });
 CANVAS.addEventListener("touchstart", (e) => {
-    if (orientation == undefined) return;
     if (GAME_STATE == GS_PLAYING) PLAYER.jump();
     if (GAME_STATE == GS_PAUSED) init_game();
 });
@@ -690,9 +723,10 @@ multiplayer_ws.onopen = () => {
     multiplayer_ws.send(JSON.stringify({ "type": "joined", "data": {} }));
 }
 multiplayer_ws.onclose = () => {
-    CHAT_HISTORY.push("Info: The WS has been closed.");
+    /* CHAT_HISTORY.push("Info: The WS has been closed.");
     CHAT_HISTORY.push("This means the game is running in offline mode, your chat messages");
-    CHAT_HISTORY.push("won't be sent.");
+    CHAT_HISTORY.push("won't be sent."); */
+    document.getElementById("chat-container").hidden = true;
     OFFLINE = true
 }
 multiplayer_ws.onmessage = (data) => {
@@ -761,52 +795,3 @@ function chat_hide(button) {
         button.innerText = "Show";
     }
 }
-
-// copied shit
-function getScreenRefreshRate(callback, runIndefinitely) {
-    let requestId = null;
-    let callbackTriggered = false;
-    runIndefinitely = runIndefinitely || false;
-
-    if (!window.requestAnimationFrame) {
-        window.requestAnimationFrame = window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
-    }
-
-    let DOMHighResTimeStampCollection = [];
-
-    let triggerAnimation = function (DOMHighResTimeStamp) {
-        DOMHighResTimeStampCollection.unshift(DOMHighResTimeStamp);
-
-        if (DOMHighResTimeStampCollection.length > 10) {
-            let t0 = DOMHighResTimeStampCollection.pop();
-            let fps = Math.floor(1000 * 10 / (DOMHighResTimeStamp - t0));
-
-            if (!callbackTriggered) {
-                callback.call(undefined, fps, DOMHighResTimeStampCollection);
-            }
-
-            if (runIndefinitely) {
-                callbackTriggered = false;
-            } else {
-                callbackTriggered = true;
-            }
-        }
-
-        requestId = window.requestAnimationFrame(triggerAnimation);
-    };
-
-    window.requestAnimationFrame(triggerAnimation);
-
-    // Stop after half second if it shouldn't run indefinitely
-    if (!runIndefinitely) {
-        window.setTimeout(function () {
-            window.cancelAnimationFrame(requestId);
-            requestId = null;
-        }, 500);
-    }
-}
-
-getScreenRefreshRate((fps) => {
-    DISPLAY_FPS = fps;
-}, true);
-//DISPLAY_FPS = 30;
