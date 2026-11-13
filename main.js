@@ -436,6 +436,13 @@ class Counter extends Object {
     }
 }
 
+function lerp(a, b, t, dt) {
+    var targetFps = 60;
+    var decay = -Math.log(1.0 - t) * targetFps;
+
+    return b+(a-b)*Math.exp(-decay*(dt/targetFps));
+}
+
 class ScorePopup extends Object {
     width = 350;
     height = 200;
@@ -454,11 +461,12 @@ class ScorePopup extends Object {
                 localStorage.setItem("crappy_bird_high_score", HIGH_SCORE);
                 this.newScore = true;
             }
-            this.y = this.y + (this.ty - this.y) * (0.1 * dt);
+
+            this.y = lerp(this.y,this.ty,0.1,dt);
             if (INSTA_RESET) init_game();
         }
         else {
-            this.y = this.y + (900 - this.y) * (0.1 * dt);
+            this.y = lerp(this.y,900,0.1,dt);
             this.newScore = false;
         }
     }
@@ -588,7 +596,11 @@ function updateLoop() {
         loop_framesDrawn = 0;
     }
 
-    if (fps_limit > 0 && loop_delta < 1/fps_limit) return;
+    if (fps_limit > 0 && loop_delta < 1/fps_limit) {
+        requestAnimationFrame(updateLoop);
+        return;
+    }
+
     loop_lastTime = Date.now();
 
     var _dt = loop_delta;
